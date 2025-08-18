@@ -1,9 +1,11 @@
 import { useParams } from "react-router-dom";
 
 import { useState, useEffect } from "react";
+import { useDeepCompareEffect } from "use-deep-compare";
 
 import Map from "@shared/components/Map.jsx";
 import SelectAirports from "./SelectAirports.jsx";
+import Waypoint from "./Waypoint.jsx";
 
 export default function EditRoute(props) {
   //State
@@ -20,6 +22,21 @@ export default function EditRoute(props) {
         [field]: value,
       };
     });
+  }
+
+  function handleWaypointChange(waypointPos, waypointValue) {
+    setRoute((prevRoute) => {
+      const allWaypoint = prevRoute.waypoints;
+      allWaypoint[waypointPos] = waypointValue;
+      return {
+        ...prevRoute,
+        waypoints: allWaypoint,
+      };
+    });
+  }
+  
+  function handleAddNewWaypoint(){
+    return;
   }
 
   //Fetch API
@@ -98,12 +115,14 @@ export default function EditRoute(props) {
   //Fetch route calc
   const { arrivingAirport, departingAirport, aircraftId, departingDate } =
     route; //set up the dependancies to recalc
-  const waypoints = route.waypoints && [...route.waypoints];
-  useEffect(() => {
+  const chosenWaypoints = route.waypoints && [...route.waypoints];
+  const middleWaypoints = chosenWaypoints && chosenWaypoints.slice(1, -1);
+
+  useDeepCompareEffect(() => {
     //Delete the 2 airports in waypoint
 
     if (
-      !waypoints ||
+      !chosenWaypoints ||
       !arrivingAirport ||
       !departingAirport ||
       !aircraftId ||
@@ -112,7 +131,6 @@ export default function EditRoute(props) {
       //Block if information is not complete
       return;
     }
-    const middleWaypoints = waypoints.slice(1, -1);
     // console.log(middleWaypoints);
 
     fetch(`http://localhost:3000/routes/calc`, {
@@ -140,9 +158,15 @@ export default function EditRoute(props) {
       .catch((reason) => {
         console.log(reason);
       });
-  }, [arrivingAirport, departingAirport, aircraftId, departingDate]);
+  }, [
+    arrivingAirport,
+    departingAirport,
+    aircraftId,
+    departingDate,
+    chosenWaypoints,
+  ]);
 
-  const highlightingMarkerIdList = route.waypoints;
+  const highlightingMarkerIdList = route.waypoints && [...route.waypoints];
   const allWaypointListWithHighlighted = allWaypoints
     ? allWaypoints.map((waypoint) => {
         if (waypoint.type === "airport") {
@@ -186,6 +210,35 @@ export default function EditRoute(props) {
           ></SelectAirports>
         </label>
         <Map waypoints={allWaypointListWithHighlighted} legs={route.legs} />
+
+        <ul>
+          <button onClick={handleAddNewWaypoint}>+Add Waypoint</button>
+          {middleWaypoints &&
+            middleWaypoints.map((waypointId) => {
+              const waypointPos = middleWaypoints.indexOf(waypointId) + 1;
+              const key = waypointId + waypointPos;
+
+              //+1 as the modifying array would be in the route, which would contain all of the waypoints, not just 1
+              const resultWaypoint = allWaypointListWithHighlighted.find(
+                (waypoint) => {
+                  if (waypoint._id === waypointId) {
+                    return true;
+                  }
+                  return false;
+                }
+              );
+              return (
+                <Waypoint
+                  // key={waypointId}
+                  key={key}
+                  waypointPos={waypointPos}
+                  defaultWaypoint={resultWaypoint}
+                  waypoints={allWaypointListWithHighlighted}
+                  onChange={handleWaypointChange}
+                />
+              );
+            })}
+        </ul>
       </form>
     </main>
   );

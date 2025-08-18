@@ -54,7 +54,7 @@ export default function Map(props) {
   const waypoints = props.waypoints || [];
   const allWaypointMarkerComponent = waypoints
     ? waypoints.map((waypoint) => {
-        const key = waypoints.indexOf(waypoint);
+        // const key = waypoint._id;
         const waypointPosition = {
           lat: waypoint.latitude,
           lng: waypoint.longitude,
@@ -76,7 +76,7 @@ export default function Map(props) {
             position={waypointPosition}
             icon={icon}
             onClick={() => {
-              setHoveredMarker(waypoints[key]);
+              setHoveredMarker(waypoint);
               setHoveredLeg(null);
             }}
           />
@@ -88,8 +88,6 @@ export default function Map(props) {
   const allLegs = props.legs || [];
   const allLegComponents = allLegs.length
     ? allLegs.map((leg) => {
-        const key = allLegs.indexOf(leg);
-
         const startingPoint = {
           lat: leg.startingWaypoint.latitude,
           lng: leg.startingWaypoint.longitude,
@@ -120,6 +118,7 @@ export default function Map(props) {
 
   return isLoaded ? (
     <GoogleMap
+      key={JSON.stringify(props.legs)}
       mapContainerStyle={containerStyle}
       center={center}
       zoom={7}
