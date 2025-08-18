@@ -29,7 +29,7 @@ export default function SelectAirports(props) {
       name={props.name}
       id=""
       onChange={(event) => {
-        console.log(event.target.value);
+        // console.log(event.target.value);
         props.onChange(props.name, event.target.value);
       }}
     >

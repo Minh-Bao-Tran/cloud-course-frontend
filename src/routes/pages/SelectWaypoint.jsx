@@ -3,7 +3,7 @@ export default function SelectWaypoint(props) {
   //must pass in: name property, waypoints, and default waypoints
   const defaultWaypoint = props.defaultWaypoint; //in name
   const waypointList = props.waypoints || []; //Fall back if no props for airport is passed
-  console.log(defaultWaypoint);
+//   console.log(defaultWaypoint);
   let defaultWaypointValue = "";
   const waypointOptionElements = waypointList.map((waypoint) => {
     if (waypoint.name === defaultWaypoint.name) {
@@ -31,7 +31,7 @@ export default function SelectWaypoint(props) {
       //   id=""
       onChange={(event) => {
         const waypointPos = props.waypointPos;
-        console.log(event.target.value);
+        // console.log(event.target.value);
         props.onChange(waypointPos, event.target.value);
       }}
     >

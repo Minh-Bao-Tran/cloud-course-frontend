@@ -34,8 +34,38 @@ export default function EditRoute(props) {
       };
     });
   }
-  
-  function handleAddNewWaypoint(){
+
+  function handleMoveWaypoint(currentPos, type) {
+    //swap Current pos and future
+    let nextPos = 0;
+    if (type === "up") {
+      nextPos = currentPos - 1;
+    } else {
+      //type = false
+      nextPos = currentPos + 1;
+    }
+    console.log(currentPos, nextPos);
+    if (nextPos == 0 || nextPos == route.waypoints.length - 1) {
+      //Cannot move first and last
+      return;
+    }
+    setRoute((prevRoute) => {
+      const nextRouteWaypoint = [...prevRoute.waypoints];
+      const swappingWaypoint1 = prevRoute.waypoints[currentPos];
+      const swappingWaypoint2 = prevRoute.waypoints[nextPos];
+
+      //The 2points change position
+      nextRouteWaypoint[currentPos] = swappingWaypoint2;
+      nextRouteWaypoint[nextPos] = swappingWaypoint1;
+
+      return {
+        ...prevRoute,
+        waypoints: nextRouteWaypoint,
+      };
+    });
+  }
+
+  function handleAddNewWaypoint() {
     return;
   }
 
@@ -54,7 +84,7 @@ export default function EditRoute(props) {
       )
       .then((res) => JSON.parse(res))
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         setAllWaypoint(data.waypoints);
       })
       .catch((reason) => {
@@ -152,7 +182,7 @@ export default function EditRoute(props) {
       .then((res) => res.json())
       .then((res) => JSON.parse(res))
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         setRoute(data);
       })
       .catch((reason) => {
@@ -214,8 +244,8 @@ export default function EditRoute(props) {
         <ul>
           <button onClick={handleAddNewWaypoint}>+Add Waypoint</button>
           {middleWaypoints &&
-            middleWaypoints.map((waypointId) => {
-              const waypointPos = middleWaypoints.indexOf(waypointId) + 1;
+            middleWaypoints.map((waypointId, index) => {
+              const waypointPos = index + 1; //First waypoint is not counted as this is the airport itself
               const key = waypointId + waypointPos;
 
               //+1 as the modifying array would be in the route, which would contain all of the waypoints, not just 1
@@ -235,6 +265,7 @@ export default function EditRoute(props) {
                   defaultWaypoint={resultWaypoint}
                   waypoints={allWaypointListWithHighlighted}
                   onChange={handleWaypointChange}
+                  onMoveWaypoint={handleMoveWaypoint}
                 />
               );
             })}
