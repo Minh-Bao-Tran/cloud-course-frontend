@@ -9,6 +9,7 @@ import {
 import { useState, useEffect } from "react";
 
 import PopUpWindowForMarker from "./PopUpWindowForMarker.jsx";
+import PopUpWindowForLeg from "./PopUpWindowForLeg.jsx";
 
 const containerStyle = {
   width: "100vh",
@@ -21,6 +22,7 @@ const center = {
 };
 
 export default function Map(props) {
+  console.log("Map runs");
   // must pass in all waypoints to draw and the route to draw.
   // props{
   //     waypoints: waypoint array,
@@ -33,11 +35,20 @@ export default function Map(props) {
   //   });
 
   const [hoveredMarker, setHoveredMarker] = useState(null);
+  const [hoveredLeg, setHoveredLeg] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script", // internal script tag ID
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, //API key
   });
+
+  function handleClosePopUpMarker() {
+    setHoveredMarker(null);
+  }
+
+  function handleClosePopUpLeg() {
+    setHoveredLeg(null);
+  }
 
   //Gen all waypoints
   const waypoints = props.waypoints || [];
@@ -48,19 +59,32 @@ export default function Map(props) {
           lat: waypoint.latitude,
           lng: waypoint.longitude,
         };
+
+        const iconMap = {
+          airport: "/airport.svg",
+          wNormal: "/normalMarker.svg",
+          wHighlighted: "/highlightedMarker.svg",
+        };
+
+        const icon = {
+          url: iconMap[waypoint.type],
+          scaledSize: new window.google.maps.Size(20, 20),
+        };
         return (
           <Marker
-            key={key}
+            key={waypoint._id}
             position={waypointPosition}
+            icon={icon}
             onClick={() => {
               setHoveredMarker(waypoints[key]);
+              setHoveredLeg(null);
             }}
           />
         );
       })
     : [];
   // Only return components if waypoints are available
-
+  //Gen all legs
   const allLegs = props.legs || [];
   const allLegComponents = allLegs.length
     ? allLegs.map((leg) => {
@@ -77,15 +101,47 @@ export default function Map(props) {
         };
 
         const path = [startingPoint, endingPoint];
-        return <Polyline key={key} path={path} />;
+        return (
+          <Polyline
+            key={leg.startingWaypointId + leg.endingWaypointId}
+            path={path}
+            onClick={() => {
+              setHoveredMarker(null);
+              setHoveredLeg(leg);
+              // console.log(key);
+              console.log(hoveredLeg);
+            }}
+          />
+        );
       })
     : [];
   //Only map leg if leg is present
+  // console.log(props.leg);
+
   return isLoaded ? (
-    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={7} onClick={()=>{setHoveredMarker(null)}}>
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={7}
+      onClick={() => {
+        handleClosePopUpMarker();
+        handleClosePopUpLeg();
+      }}
+    >
       {allWaypointMarkerComponent}
       {allLegComponents}
-      {hoveredMarker && <PopUpWindowForMarker waypoint={hoveredMarker} />}
+      {hoveredMarker && (
+        <PopUpWindowForMarker
+          waypoint={hoveredMarker}
+          onCloseClick={handleClosePopUpMarker}
+        />
+      )}
+      {hoveredLeg && (
+        <PopUpWindowForLeg
+          leg={hoveredLeg}
+          onCloseClick={handleClosePopUpLeg}
+        />
+      )}
     </GoogleMap>
   ) : (
     <div>Loading...</div>

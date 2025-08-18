@@ -1,5 +1,5 @@
 import { InfoWindow } from "@react-google-maps/api";
-import "./PopUpWindowForMarker.css";
+import "./PopUpWindow.css";
 
 export default function popUp(props) {
   //pass in a waypoint to show on the window
@@ -8,10 +8,13 @@ export default function popUp(props) {
     lng: props.waypoint.longitude,
   };
   return (
-    <InfoWindow position={position}>
+    <InfoWindow position={position} onCloseClick={props.onCloseClick}>
       <div className="pop-up-window">
-        <h3>Marker Info</h3>
-        <p>This appears on hover!</p>
+        <h3>{props.waypoint.name}</h3>
+        <p>Latitude: {position.lat.toFixed(4)}</p>
+        <p>Longitude: {position.lng.toFixed(4)}</p>
+        <p>Vis: {props.waypoint.weather.visibility} km</p>
+        <p>Weather: {props.waypoint.weather.message}</p>
       </div>
     </InfoWindow>
   );

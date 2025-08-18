@@ -1,12 +1,29 @@
-import Map from "@shared/components/Map.jsx";
 import { useParams } from "react-router-dom";
 
 import { useState, useEffect } from "react";
 
-export default function EditRoute(props) {
-  const [allWaypoints, setAllWaypoint] = useState([]);
-  const [route, setAllRoute] = useState({});
+import Map from "@shared/components/Map.jsx";
+import SelectAirports from "./SelectAirports.jsx";
 
+export default function EditRoute(props) {
+  //State
+  const [allWaypoints, setAllWaypoint] = useState([]);
+  const [route, setRoute] = useState({});
+  const [allAirport, setAllAirport] = useState([]);
+  //Event Handler
+  function handleAirportChange(field, value) {
+    //Only allow field: departingAirport and arrivingAirport
+
+    setRoute((prevRoute) => {
+      return {
+        ...prevRoute,
+        [field]: value,
+      };
+    });
+  }
+
+  //Fetch API
+  //Fetch All Waypoints for map
   useEffect(() => {
     fetch("http://localhost:3000/waypoints")
       .then(
@@ -28,6 +45,7 @@ export default function EditRoute(props) {
       });
   }, []);
 
+  //Fetch Routes for map
   const { id } = useParams(); //Accessing the Route Id Params
   useEffect(() => {
     fetch(`http://localhost:3000/routes/${id}`, {
@@ -49,17 +67,126 @@ export default function EditRoute(props) {
       )
       .then((res) => JSON.parse(res))
       .then((data) => {
-        console.log(data);
-        setAllRoute(data);
+        setRoute(data);
       })
       .catch((reason) => {
         console.log(reason);
       });
   }, []);
 
+  //Fetch All airports
+  useEffect(() => {
+    fetch(`http://localhost:3000/static/airports`)
+      .then(
+        (res) => {
+          if (res.status != 200) {
+            console.log(`${res.status}: can not be fetched`);
+          }
+          return res.json();
+        }
+        //Turned into array with Waypoint objects
+      )
+      .then((res) => JSON.parse(res))
+      .then((data) => {
+        setAllAirport(data);
+      })
+      .catch((reason) => {
+        console.log(reason);
+      });
+  }, []);
+
+  //Fetch route calc
+  const { arrivingAirport, departingAirport, aircraftId, departingDate } =
+    route; //set up the dependancies to recalc
+  const waypoints = route.waypoints && [...route.waypoints];
+  useEffect(() => {
+    //Delete the 2 airports in waypoint
+
+    if (
+      !waypoints ||
+      !arrivingAirport ||
+      !departingAirport ||
+      !aircraftId ||
+      !departingDate
+    ) {
+      //Block if information is not complete
+      return;
+    }
+    const middleWaypoints = waypoints.slice(1, -1);
+    // console.log(middleWaypoints);
+
+    fetch(`http://localhost:3000/routes/calc`, {
+      method: "POST",
+      headers: {
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NDcyNjE2LCJleHAiOjE3NTU1NTkwMTZ9.XsiMCkPvLT2WyErTOsKcQdKqd6b7wcKwPBqQgToMWh4",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        departingAirport: departingAirport,
+        arrivingAirport: arrivingAirport,
+        waypoints: middleWaypoints,
+        departingDate: departingDate,
+        arrivingDate: route.arrivingDate,
+        aircraftId: aircraftId,
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => JSON.parse(res))
+      .then((data) => {
+        console.log(data);
+        setRoute(data);
+      })
+      .catch((reason) => {
+        console.log(reason);
+      });
+  }, [arrivingAirport, departingAirport, aircraftId, departingDate]);
+
+  const highlightingMarkerIdList = route.waypoints;
+  const allWaypointListWithHighlighted = allWaypoints
+    ? allWaypoints.map((waypoint) => {
+        if (waypoint.type === "airport") {
+          //Airport are not modified
+          return { ...waypoint };
+        }
+
+        if (highlightingMarkerIdList.some((_id) => _id == waypoint._id)) {
+          //return true if waypoint_id == _id in
+          return { ...waypoint, type: "wHighlighted" };
+        }
+
+        //Object is not in highlighted list
+        return { ...waypoint };
+      })
+    : [];
+
   return (
     <main>
-      <Map waypoints={allWaypoints} legs={route.legs} />
+      <form
+        action={(formData) => {
+          console.log(formData);
+        }}
+      >
+        <label>
+          <p>Departing Airport</p>
+          <SelectAirports
+            name="departingAirport"
+            airports={allAirport}
+            defaultAirport={route.departingAirport}
+            onChange={handleAirportChange}
+          ></SelectAirports>
+        </label>
+        <label>
+          <p>Arriving Airport</p>
+          <SelectAirports
+            name="arrivingAirport"
+            airports={allAirport}
+            defaultAirport={route.arrivingAirport}
+            onChange={handleAirportChange}
+          ></SelectAirports>
+        </label>
+        <Map waypoints={allWaypointListWithHighlighted} legs={route.legs} />
+      </form>
     </main>
   );
 }
