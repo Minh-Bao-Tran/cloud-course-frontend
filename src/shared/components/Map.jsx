@@ -8,6 +8,8 @@ import {
 
 import { useState, useEffect } from "react";
 
+import PopUpWindowForMarker from "./PopUpWindowForMarker.jsx";
+
 const containerStyle = {
   width: "100vh",
   height: "100vh",
@@ -41,11 +43,20 @@ export default function Map(props) {
   const waypoints = props.waypoints || [];
   const allWaypointMarkerComponent = waypoints
     ? waypoints.map((waypoint) => {
+        const key = waypoints.indexOf(waypoint);
         const waypointPosition = {
           lat: waypoint.latitude,
           lng: waypoint.longitude,
         };
-        return <Marker key={waypoint._id} position={waypointPosition} />;
+        return (
+          <Marker
+            key={key}
+            position={waypointPosition}
+            onClick={() => {
+              setHoveredMarker(waypoints[key]);
+            }}
+          />
+        );
       })
     : [];
   // Only return components if waypoints are available
@@ -53,7 +64,6 @@ export default function Map(props) {
   const allLegs = props.legs || [];
   const allLegComponents = allLegs.length
     ? allLegs.map((leg) => {
-        console.log(leg);
         const key = allLegs.indexOf(leg);
 
         const startingPoint = {
@@ -71,11 +81,11 @@ export default function Map(props) {
       })
     : [];
   //Only map leg if leg is present
-
   return isLoaded ? (
-    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={7}>
+    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={7} onClick={()=>{setHoveredMarker(null)}}>
       {allWaypointMarkerComponent}
       {allLegComponents}
+      {hoveredMarker && <PopUpWindowForMarker waypoint={hoveredMarker} />}
     </GoogleMap>
   ) : (
     <div>Loading...</div>
