@@ -5,6 +5,7 @@ import { useDeepCompareEffect } from "use-deep-compare";
 
 import Map from "@shared/components/Map.jsx";
 import SelectAirports from "./SelectAirports.jsx";
+import SelectAircrafts from "./SelectAircraft.jsx";
 import Waypoint from "./Waypoint.jsx";
 
 export default function EditRoute(props) {
@@ -12,6 +13,7 @@ export default function EditRoute(props) {
   const [allWaypoints, setAllWaypoint] = useState([]);
   const [route, setRoute] = useState({});
   const [allAirport, setAllAirport] = useState([]);
+  const [allAircraft, setAllAircraft] = useState([]);
   //Event Handler
   function handleAirportChange(field, value) {
     //Only allow field: departingAirport and arrivingAirport
@@ -66,8 +68,82 @@ export default function EditRoute(props) {
   }
 
   function handleAddNewWaypoint() {
-    return;
+    setRoute((prevRoute) => {
+      //Add new waypoint to the end
+      const prevWaypoint = prevRoute.waypoints;
+      const newWaypoint = prevWaypoint.toSpliced(-1, 0, "");
+      return {
+        ...prevRoute,
+        waypoints: newWaypoint,
+      };
+    });
   }
+
+  function handleDeleteWaypoint(index) {
+    setRoute((prevRoute) => {
+      const prevWaypoint = prevRoute.waypoints;
+      const newWaypoint = prevWaypoint.toSpliced(index, 1);
+      return {
+        ...prevRoute,
+        waypoints: newWaypoint,
+      };
+    });
+    console.log(route.waypoints);
+  }
+
+  function handleUpdateForm() {
+    //Delete the 2 airports in waypoint
+
+    if (
+      !chosenWaypoints ||
+      !arrivingAirport ||
+      !departingAirport ||
+      !aircraftId ||
+      !departingDate
+    ) {
+      //Block if information is not complete
+      return;
+    }
+    // console.log(middleWaypoints);
+
+    fetch(`http://localhost:3000/routes/${id}`, {
+      method: "PUT",
+      headers: {
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NTU3NTc2LCJleHAiOjE3NTU2NDM5NzZ9.Tj4HLU-bIeqiftUCMjSbSxEMzMuqY9rq2wimzC-hqF8",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        departingAirport: departingAirport,
+        arrivingAirport: arrivingAirport,
+        waypoints: middleWaypoints,
+        departingDate: departingDate,
+        arrivingDate: route.arrivingDate,
+        aircraftId: aircraftId,
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => JSON.parse(res))
+      .then((data) => {
+        // console.log(data);
+        alert("success: " + data.success);
+      })
+      .catch((reason) => {
+        console.log(reason);
+      });
+  }
+
+  function handleUpdateAircraft(aircraft) {
+    setRoute((prevRoute) => {
+      //Add new waypoint to the end
+      const newAircraft = aircraft;
+      return {
+        ...prevRoute,
+        aircraftId: newAircraft,
+      };
+    });
+  }
+  console.log(route, allWaypoints);
 
   //Fetch API
   //Fetch All Waypoints for map
@@ -99,7 +175,7 @@ export default function EditRoute(props) {
       method: "GET",
       headers: {
         Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NDcyNjE2LCJleHAiOjE3NTU1NTkwMTZ9.XsiMCkPvLT2WyErTOsKcQdKqd6b7wcKwPBqQgToMWh4",
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NTU3NTc2LCJleHAiOjE3NTU2NDM5NzZ9.Tj4HLU-bIeqiftUCMjSbSxEMzMuqY9rq2wimzC-hqF8",
         "Content-Type": "application/json",
       },
     })
@@ -142,11 +218,47 @@ export default function EditRoute(props) {
       });
   }, []);
 
+  //Fetch All user Aircraft
+  useEffect(() => {
+    fetch(`http://localhost:3000/aircrafts`, {
+      method: "GET",
+      headers: {
+        Authorization:
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NTU3NTc2LCJleHAiOjE3NTU2NDM5NzZ9.Tj4HLU-bIeqiftUCMjSbSxEMzMuqY9rq2wimzC-hqF8",
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (res.status != 200) {
+          console.log(`${res.status}: can not be fetched`);
+        }
+        return res.json();
+      })
+      .then((res) => JSON.parse(res))
+      .then((data) => {
+        setAllAircraft(data.aircrafts);
+      })
+      .catch((reason) => {
+        console.log(reason);
+      });
+  }, []);
+  console.log(allAircraft);
+
   //Fetch route calc
   const { arrivingAirport, departingAirport, aircraftId, departingDate } =
     route; //set up the dependancies to recalc
   const chosenWaypoints = route.waypoints && [...route.waypoints];
   const middleWaypoints = chosenWaypoints && chosenWaypoints.slice(1, -1);
+
+  //filter out all newly created waypoint
+  const validWaypoints =
+    middleWaypoints &&
+    middleWaypoints.filter((waypoint) => {
+      if (waypoint !== "") {
+        return true;
+      }
+      return false;
+    });
 
   useDeepCompareEffect(() => {
     //Delete the 2 airports in waypoint
@@ -167,7 +279,7 @@ export default function EditRoute(props) {
       method: "POST",
       headers: {
         Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NDcyNjE2LCJleHAiOjE3NTU1NTkwMTZ9.XsiMCkPvLT2WyErTOsKcQdKqd6b7wcKwPBqQgToMWh4",
+          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NTU3NTc2LCJleHAiOjE3NTU2NDM5NzZ9.Tj4HLU-bIeqiftUCMjSbSxEMzMuqY9rq2wimzC-hqF8",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -193,10 +305,11 @@ export default function EditRoute(props) {
     departingAirport,
     aircraftId,
     departingDate,
-    chosenWaypoints,
+    validWaypoints,
   ]);
 
   const highlightingMarkerIdList = route.waypoints && [...route.waypoints];
+
   const allWaypointListWithHighlighted = allWaypoints
     ? allWaypoints.map((waypoint) => {
         if (waypoint.type === "airport") {
@@ -213,14 +326,11 @@ export default function EditRoute(props) {
         return { ...waypoint };
       })
     : [];
+  console.log(allWaypointListWithHighlighted);
 
   return (
     <main>
-      <form
-        action={(formData) => {
-          console.log(formData);
-        }}
-      >
+      <form>
         <label>
           <p>Departing Airport</p>
           <SelectAirports
@@ -239,17 +349,32 @@ export default function EditRoute(props) {
             onChange={handleAirportChange}
           ></SelectAirports>
         </label>
+        <label>
+          <p>Aircraft</p>
+          <SelectAircrafts
+            name="aircraft"
+            aircrafts={allAircraft}
+            defaultAircraft={route.aircraftId}
+            onChange={handleUpdateAircraft}
+          />
+        </label>
+        <p id="totalTime">
+          Total time: {route.time && route.time.toFixed(2)} hours
+        </p>
+        <p id="totalDistance">
+          Total distance: {route.distance && route.distance.toFixed(2)} nm
+        </p>
         <Map waypoints={allWaypointListWithHighlighted} legs={route.legs} />
-
         <ul>
-          <button onClick={handleAddNewWaypoint}>+Add Waypoint</button>
+          <button type="button" onClick={handleAddNewWaypoint}>
+            +Add Waypoint
+          </button>
           {middleWaypoints &&
             middleWaypoints.map((waypointId, index) => {
               const waypointPos = index + 1; //First waypoint is not counted as this is the airport itself
               const key = waypointId + waypointPos;
 
-              //+1 as the modifying array would be in the route, which would contain all of the waypoints, not just 1
-              const resultWaypoint = allWaypointListWithHighlighted.find(
+              let resultWaypoint = allWaypointListWithHighlighted.find(
                 (waypoint) => {
                   if (waypoint._id === waypointId) {
                     return true;
@@ -257,6 +382,10 @@ export default function EditRoute(props) {
                   return false;
                 }
               );
+
+              if (waypointId == "") {
+                resultWaypoint = {};
+              }
               return (
                 <Waypoint
                   // key={waypointId}
@@ -266,10 +395,14 @@ export default function EditRoute(props) {
                   waypoints={allWaypointListWithHighlighted}
                   onChange={handleWaypointChange}
                   onMoveWaypoint={handleMoveWaypoint}
+                  onDelete={handleDeleteWaypoint}
                 />
               );
             })}
         </ul>
+        <button type="button" onClick={handleUpdateForm}>
+          Save
+        </button>
       </form>
     </main>
   );

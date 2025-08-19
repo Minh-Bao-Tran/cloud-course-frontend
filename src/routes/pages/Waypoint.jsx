@@ -11,7 +11,7 @@ export default function Waypoint(props) {
             //Can not move the first waypoint
             return;
           }
-          props.onMoveWaypoint(props.waypointPos, props.waypointPos - 1);
+          props.onMoveWaypoint(props.waypointPos, "up");
         }}
       >
         Up
@@ -24,7 +24,7 @@ export default function Waypoint(props) {
             //- 2 as this is not accounted for the airport
             return;
           }
-          props.onMoveWaypoint(props.waypointPos, props.waypointPos + 1);
+          props.onMoveWaypoint(props.waypointPos, "down");
         }}
       >
         Down
@@ -41,7 +41,14 @@ export default function Waypoint(props) {
           <p>Lon: {props.defaultWaypoint.longitude}</p>
         </>
       )}
-      <button type="button"> Delete</button>
+      <button
+        type="button"
+        onClick={() => {
+          props.onDelete(props.waypointPos);
+        }}
+      >
+        Delete
+      </button>
     </li>
   );
 }
