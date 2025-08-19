@@ -178,56 +178,6 @@ export default function EditRoute(props) {
       });
   }, []);
 
-  //Fetch Routes for map
-  //   const { id } = useParams(); //Accessing the Route Id Params
-  //   useEffect(() => {
-  //     fetch(`http://localhost:3000/routes/${id}`, {
-  //       method: "GET",
-  //       headers: {
-  //         Authorization:
-  //           "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc0F1dGgiOnRydWUsInVzZXIiOnsidXNlck5hbWUiOiJNYXR0VHJhbiIsImVtYWlsIjoibWluaHRyYW5udng1NkBnbWFpbC5jb20iLCJfaWQiOiI2ODkzZjMyNjk5ZmMwNjIzYWU5NGVlZjkifSwiaWF0IjoxNzU1NTU3NTc2LCJleHAiOjE3NTU2NDM5NzZ9.Tj4HLU-bIeqiftUCMjSbSxEMzMuqY9rq2wimzC-hqF8",
-  //         "Content-Type": "application/json",
-  //       },
-  //     })
-  //       .then(
-  //         (res) => {
-  //           if (res.status != 200) {
-  //             console.log(`${res.status}: can not be fetched`);
-  //           }
-  //           return res.json();
-  //         }
-  //         //Turned into array with Waypoint objects
-  //       )
-  //       .then((res) => JSON.parse(res))
-  //       .then((data) => {
-  //         setRoute(data);
-  //       })
-  //       .catch((reason) => {
-  //         console.log(reason);
-  //       });
-  //   }, []);
-
-  //   //Fetch All airports
-  //   useEffect(() => {
-  //     fetch(`http://localhost:3000/static/airports`)
-  //       .then(
-  //         (res) => {
-  //           if (res.status != 200) {
-  //             console.log(`${res.status}: can not be fetched`);
-  //           }
-  //           return res.json();
-  //         }
-  //         //Turned into array with Waypoint objects
-  //       )
-  //       .then((res) => JSON.parse(res))
-  //       .then((data) => {
-  //         setAllAirport(data);
-  //       })
-  //       .catch((reason) => {
-  //         console.log(reason);
-  //       });
-  //   }, []);
-
   //Fetch All user Aircraft
   useEffect(() => {
     fetch(`http://localhost:3000/aircrafts`, {

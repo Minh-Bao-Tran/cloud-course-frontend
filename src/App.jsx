@@ -9,7 +9,7 @@ import "./App.css";
 function App() {
   return (
     <Router>
-      <SideBar></SideBar>
+      {/* <SideBar></SideBar> */}
       <Routes>
         <Route path="/routes/new" element={<NewRoutePage />} ></Route>
         <Route path="/routes/:id" element={<EditRoutePage />} ></Route>
